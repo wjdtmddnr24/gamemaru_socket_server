@@ -1,6 +1,7 @@
 var app = require('http').createServer(handler)
 var io = require('socket.io')(20124);
 var fs = require('fs');
+var gameEnded = "-1";
 
 // app.listen(20124);
 
@@ -21,18 +22,22 @@ io.on('connection', function (socket) {
         console.log("user connected");
         socket.emit("USER_CONNECTED", {id: socket.id});
     });
-
+    socket.on("game", function (socket) {
+        console.log(("game ended"));
+        gameEnded="1";
+    });
     socket.on("sync:player", function (player) {
         // player.id = socket.id;
         players[player.id] = player;
         socket.broadcast.emit("sync:player", player);
-        printPlayers();
+        //printPlayers();
+        socket.emit("game", {gameEnded: gameEnded});
     });
 
     socket.on('disconnect', function () {
         console.log('user disconnect')
         if (socket.id in players) delete players[socket.id]
-        socket.broadcast.emit("sync:deletePlayer",{id: socket.id});
+        socket.broadcast.emit("sync:deletePlayer", {id: socket.id});
     });
 
     socket.on('my other event', function (data) {
